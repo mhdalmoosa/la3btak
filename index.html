@@ -115,9 +115,79 @@
     .card, .go{ transition:none; }
     .card:hover{ transform:none; }
   }
+
+  /* ---------- account ---------- */
+  .account-chip{
+    position:fixed; top:16px; inset-inline-end:16px; z-index:50;
+    display:flex; align-items:center; gap:6px;
+    padding:8px 14px; border-radius:999px; cursor:pointer;
+    background:rgba(8,16,26,.72); border:1px solid var(--tile-border);
+    color:var(--dim); font-size:.78rem; font-weight:700; font-family:inherit;
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    transition:border-color .2s ease, color .2s ease;
+  }
+  .account-chip.signed-in{ color:var(--gold); border-color:rgba(216,180,90,.45); }
+  .account-chip:hover{ border-color:var(--gold); }
+
+  .modal-overlay{
+    position:fixed; inset:0; z-index:100; display:none;
+    align-items:center; justify-content:center; padding:20px;
+    background:rgba(2,6,10,.72); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-card{
+    position:relative; width:100%; max-width:360px; padding:30px 24px 24px;
+    border-radius:20px; text-align:center;
+    background:linear-gradient(160deg, var(--sea2), var(--tile) 75%);
+    border:1px solid var(--tile-border);
+    box-shadow:0 20px 50px rgba(0,0,0,.5);
+  }
+  .modal-card h2{ font-size:1.1rem; font-weight:800; color:var(--gold); margin-bottom:6px; }
+  .modal-sub{ font-size:.8rem; color:var(--dim); margin-bottom:18px; }
+  .modal-field{ text-align:right; margin-bottom:12px; }
+  .modal-field label{ display:block; font-size:.72rem; color:var(--dim); margin-bottom:5px; }
+  .modal-field input{
+    width:100%; padding:10px 12px; border-radius:10px; font-size:.9rem;
+    background:rgba(255,255,255,.05); border:1px solid var(--tile-border); color:var(--pearl);
+    font-family:inherit;
+  }
+  .modal-field input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .modal-error{ font-size:.78rem; color:#ff8a93; margin-bottom:10px; min-height:1.1em; }
+  .modal-btn{
+    width:100%; padding:11px; border-radius:12px; border:0; cursor:pointer;
+    font-family:inherit; font-weight:800; font-size:.9rem; margin-bottom:10px;
+    background:linear-gradient(180deg,#e8c876,var(--gold)); color:#241a04;
+  }
+  .modal-btn:disabled{ opacity:.6; cursor:default; }
+  .modal-link{ background:none; border:0; color:var(--dim); font-size:.78rem; text-decoration:underline; cursor:pointer; font-family:inherit; }
+  .modal-close{
+    position:absolute; top:12px; inset-inline-start:14px; background:none; border:0;
+    color:var(--dim); font-size:1.2rem; line-height:1; cursor:pointer; padding:4px;
+  }
 </style>
 </head>
 <body>
+  <button class="account-chip" id="accountChip">🔓 تسجيل الدخول</button>
+
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-card">
+      <button class="modal-close" id="authClose" aria-label="إغلاق">✕</button>
+      <h2 id="authTitle">تسجيل الدخول</h2>
+      <p class="modal-sub">حساب واحد لكل ألعاب لعبتك</p>
+      <div class="modal-field">
+        <label for="authEmail">البريد الإلكتروني</label>
+        <input type="email" id="authEmail" autocomplete="email">
+      </div>
+      <div class="modal-field">
+        <label for="authPassword">كلمة المرور</label>
+        <input type="password" id="authPassword" autocomplete="current-password">
+      </div>
+      <p class="modal-error" id="authError"></p>
+      <button class="modal-btn" id="authSubmit">تسجيل الدخول</button>
+      <button class="modal-link" id="authToggle">ليس لديك حساب؟ أنشئ واحداً</button>
+    </div>
+  </div>
+
   <div class="hub">
     <div class="heading">
       <img class="logo" src="la3btak-logo.png" alt="لعبتك">
@@ -167,5 +237,88 @@
       </a>
     </div>
   </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+      createUserWithEmailAndPassword, signOut
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD1pPAZWBUGf2mfSqK0xDYCAw1Xtn15-GI",
+      authDomain: "la3btak-7fcc7.firebaseapp.com",
+      databaseURL: "https://la3btak-7fcc7-default-rtdb.firebaseio.com",
+      projectId: "la3btak-7fcc7",
+      storageBucket: "la3btak-7fcc7.firebasestorage.app",
+      messagingSenderId: "30284937084",
+      appId: "1:30284937084:web:8042832571605d7e76d6f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const chip = document.getElementById('accountChip');
+    const modal = document.getElementById('authModal');
+    const closeBtn = document.getElementById('authClose');
+    const emailInput = document.getElementById('authEmail');
+    const passInput = document.getElementById('authPassword');
+    const errorEl = document.getElementById('authError');
+    const submitBtn = document.getElementById('authSubmit');
+    const toggleBtn = document.getElementById('authToggle');
+    const titleEl = document.getElementById('authTitle');
+
+    let mode = 'login';
+    let currentUser = null;
+
+    function openModal(){ errorEl.textContent = ''; emailInput.value=''; passInput.value=''; modal.classList.add('open'); emailInput.focus(); }
+    function closeModal(){ modal.classList.remove('open'); }
+
+    function setMode(m){
+      mode = m;
+      const isLogin = mode === 'login';
+      titleEl.textContent = isLogin ? 'تسجيل الدخول' : 'إنشاء حساب';
+      submitBtn.textContent = isLogin ? 'تسجيل الدخول' : 'إنشاء حساب';
+      toggleBtn.textContent = isLogin ? 'ليس لديك حساب؟ أنشئ واحداً' : 'لديك حساب بالفعل؟ سجّل الدخول';
+      errorEl.textContent = '';
+    }
+
+    chip.addEventListener('click', () => {
+      if (currentUser) signOut(auth).catch(() => {});
+      else { setMode('login'); openModal(); }
+    });
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    toggleBtn.addEventListener('click', () => setMode(mode === 'login' ? 'signup' : 'login'));
+    passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitBtn.click(); });
+
+    submitBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passInput.value;
+      if (!email || !password){ errorEl.textContent = 'الرجاء تعبئة الحقول.'; return; }
+      errorEl.textContent = '';
+      submitBtn.disabled = true;
+      try {
+        if (mode === 'login') await signInWithEmailAndPassword(auth, email, password);
+        else await createUserWithEmailAndPassword(auth, email, password);
+        closeModal();
+      } catch (err) {
+        errorEl.textContent = 'حدث خطأ ما. تحقق من بياناتك وحاول مرة أخرى.';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        chip.textContent = '👤 ' + (user.email ? user.email.split('@')[0] : 'حسابي');
+        chip.classList.add('signed-in');
+      } else {
+        chip.textContent = '🔓 تسجيل الدخول';
+        chip.classList.remove('signed-in');
+      }
+    });
+  </script>
 </body>
 </html>
