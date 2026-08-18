@@ -29,17 +29,10 @@
 
   .hub{ width:100%; max-width:560px; padding:44px 22px 48px; display:flex; flex-direction:column; align-items:center; gap:30px; }
 
-  .mark{
-    width:15px; height:15px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #fff, #d9cdb2 45%, #9c8f74);
-    box-shadow:0 0 16px rgba(243,236,220,.55);
-  }
-
-  .heading{ text-align:center; display:flex; flex-direction:column; gap:10px; }
-  h1{
-    font-family:'Aref Ruqaa', serif; font-size:clamp(1.9rem, 7vw, 2.5rem); font-weight:700;
-    color:var(--gold); text-shadow:0 0 26px rgba(216,180,90,.28);
-    text-wrap:balance;
+  .heading{ text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .logo{
+    width:min(340px, 74vw); height:auto; display:block;
+    filter:drop-shadow(0 0 30px rgba(216,180,90,.24));
   }
   .sub{ font-size:.94rem; color:var(--dim); font-weight:500; text-wrap:balance; }
 
@@ -104,9 +97,8 @@
 </head>
 <body>
   <div class="hub">
-    <span class="mark"></span>
     <div class="heading">
-      <h1>اختر لعبتك</h1>
+      <img class="logo" src="la3btak-logo.png" alt="لعبتك">
       <p class="sub">لعبتان عربيتان، بروح واحدة</p>
     </div>
 
