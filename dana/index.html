@@ -25,7 +25,8 @@
     background:radial-gradient(circle at 35% 30%, #fff, #d9cdb2 45%, #9c8f74);
     margin:0 .12em;vertical-align:middle;box-shadow:0 0 10px rgba(243,236,220,.5)}
   .iconbtn{background:none;border:1px solid #2b4a5d;border-radius:8px;color:var(--pearl);
-    font-size:1.1rem;width:38px;height:38px;cursor:pointer}
+    font-size:1.1rem;width:38px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .iconGroup{display:flex;gap:6px}
   .modes{display:flex;gap:6px;justify-content:center;margin-top:8px}
   .mode{border:1px solid #2b4a5d;background:transparent;color:var(--dim);border-radius:20px;
     padding:5px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer}
@@ -52,7 +53,7 @@
     cursor:pointer;margin:4px 0}
   .hintbtn:disabled{opacity:.35;cursor:default}
   #kb{width:100%;max-width:520px;padding:4px 4px 12px;user-select:none}
-  .kbrow{display:flex;justify-content:center;gap:4px;margin-bottom:5px}
+  .kbrow{display:flex;direction:ltr;justify-content:center;gap:4px;margin-bottom:5px}
   .key{flex:1;max-width:44px;height:50px;border:none;border-radius:8px;background:#2a4356;
     color:var(--pearl);font-family:inherit;font-size:1.1rem;font-weight:700;cursor:pointer;
     display:flex;align-items:center;justify-content:center;transition:background .15s}
@@ -89,7 +90,10 @@
 <body>
 <header>
   <div class="topbar">
-    <button class="iconbtn" id="btnStats" title="الإحصائيات">📊</button>
+    <div class="iconGroup">
+      <button class="iconbtn" id="btnHome" title="الرئيسية">🏠</button>
+      <button class="iconbtn" id="btnStats" title="الإحصائيات">📊</button>
+    </div>
     <h1>دانـ<span class="dot"></span>ـة</h1>
     <button class="iconbtn" id="btnHelp" title="طريقة اللعب">؟</button>
   </div>
@@ -314,6 +318,7 @@ $('btnStats').onclick=()=>{
   $('ovStats').classList.add('show');
 };
 $('btnHelp').onclick=()=>$('ovHelp').classList.add('show');
+$('btnHome').onclick=()=>{location.href='../';};
 $('btnAgain').onclick=newGame;
 $('btnShare').onclick=()=>{
   const map={correct:"🟩",present:"🟨",absent:"⬛"};
