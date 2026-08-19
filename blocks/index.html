@@ -22,7 +22,22 @@
       }).catch(function(){});
     } catch(e){}
   }
-  post('analytics/pageviews', { page: PAGE, ts: Date.now(), ref: (document.referrer||'').slice(0,200) });
+  function visitorId(){
+    try {
+      var k = 'la3btak_vid';
+      var v = localStorage.getItem(k);
+      if (!v) { v = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem(k, v); }
+      return v;
+    } catch(e) { return 'unknown'; }
+  }
+  function deviceInfo(){
+    var ua = navigator.userAgent || '';
+    var isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    var os = /iPhone|iPad|iPod/i.test(ua) ? 'iOS' : /Android/i.test(ua) ? 'Android' : /Mac OS/i.test(ua) ? 'Mac' : /Windows/i.test(ua) ? 'Windows' : /Linux/i.test(ua) ? 'Linux' : 'Other';
+    return { type: isMobile ? 'mobile' : 'desktop', os: os };
+  }
+  var dev = deviceInfo();
+  post('analytics/pageviews', { page: PAGE, ts: Date.now(), ref: (document.referrer||'').slice(0,200), vid: visitorId(), device: dev.type, os: dev.os });
   window.addEventListener('error', function(e){
     post('analytics/errors', { page: PAGE, ts: Date.now(), msg: String(e.message||'').slice(0,300), src: String(e.filename||'').slice(0,200), line: e.lineno||0 });
   });
