@@ -6,6 +6,29 @@
 <title>دانة — لعبة الكلمات الخليجية</title>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1865663769174674"
      crossorigin="anonymous"></script>
+<script>
+(function(){
+  var DB = 'https://la3btak-7fcc7-default-rtdb.firebaseio.com';
+  var PAGE = 'dana';
+  function post(path, data){
+    try {
+      fetch(DB + '/' + path + '.json', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      }).catch(function(){});
+    } catch(e){}
+  }
+  post('analytics/pageviews', { page: PAGE, ts: Date.now(), ref: (document.referrer||'').slice(0,200) });
+  window.addEventListener('error', function(e){
+    post('analytics/errors', { page: PAGE, ts: Date.now(), msg: String(e.message||'').slice(0,300), src: String(e.filename||'').slice(0,200), line: e.lineno||0 });
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    var r = e.reason;
+    post('analytics/errors', { page: PAGE, ts: Date.now(), msg: 'unhandledrejection: ' + String((r && r.message) || r || '').slice(0,300) });
+  });
+})();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Aref+Ruqaa:wght@700&display=swap');
   :root{
